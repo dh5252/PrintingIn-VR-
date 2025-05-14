@@ -1,0 +1,34 @@
+{
+    "name": "XRControls",
+    "maps": [
+        {
+            "name": "UI",
+            "id": "2be11ca6-89e8-43ab-ab58-0aab90c8cf25",
+            "actions": [
+                {
+                    "name": "ToggleCoding",
+                    "type": "Button",
+                    "id": "98fd5f4d-cf1c-4e79-8d4a-b77267876cbc",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "36ef3e80-7a14-4d0b-b4da-7348a4093a1a",
+                    "path": "<XRController>{RightHand}/{PrimaryButton}",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleCoding",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
