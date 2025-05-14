@@ -1,0 +1,66 @@
+# 빌드 파일 및 바이너리
+[Bb]uild/
+[Bb]uilds/
+[Ll]ibrary/
+[Tt]emp/
+Obj/
+MemoryCaptures/
+*.apk
+*.aab
+*.unitypackage
+
+# 사용자 설정
+.vs/
+.vscode/
+*.csproj
+*.sln
+*.user
+*.pidb
+*.suo
+*.userprefs
+
+# Unity 설정 중 로컬 전용인 것들
+*.booproj
+*.svd
+*.pdb
+*.mdb
+
+# OS 별 자동 파일
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Unity Collaborate 관련
+.collabignore
+
+# Crash Reports
+sysinfo.txt
+
+# Rider IDE
+.idea/
+*.sln.iml
+
+# JetBrains Rider plugin cache
+/.idea/.idea.Unity*
+
+# 빌드 시스템
+*.xcworkspace
+*.xcodeproj
+*.xcuserdata/
+
+# Android
+.gradle/
+*.gradle
+local.properties
+*.apk
+*.keystore
+
+# iOS
+Pods/
+Podfile.lock
+
+# 기타 임시
+*.log
+*.tmp
+*.bak
