@@ -42,4 +42,5 @@ public class CodingWindowToggle : MonoBehaviour
             codingPanel.transform.rotation = Quaternion.LookRotation(forward, Vector3.up);
         }
     }
+
 }
