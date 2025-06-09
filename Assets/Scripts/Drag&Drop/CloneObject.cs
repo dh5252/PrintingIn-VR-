@@ -1,7 +1,7 @@
-using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class CloneObject : MonoBehaviour
 {
@@ -11,20 +11,21 @@ public class CloneObject : MonoBehaviour
 
     private XRBaseInteractable _interactable;
 
+    XRInteractionManager interactionManager;
+
     private Transform parent;
     private Vector3 localPos;
     private Quaternion localRot;
-    private GameObject clone;
 
     private void Awake()
     {
         _interactable = GetComponent<XRBaseInteractable>();
+        interactionManager = _interactable.interactionManager;
         if (_interactable == null)
             Debug.LogError("CloneObject: XRBaseInteractable 컴포넌트가 필요합니다.");
         parent = transform.parent;
         localPos = transform.localPosition;
         localRot = transform.localRotation;
-        clone = null;
     }
 
     private void OnEnable()
@@ -41,33 +42,18 @@ public class CloneObject : MonoBehaviour
 
     private void OnSelectEntered(SelectEnterEventArgs args)
     {
-        if (toClone == null)
-        {
-            Debug.LogError("CloneObject : 복사할 오브젝트가 설정되지 않았습니다.");
-            return;
-        }
-
-        clone = Instantiate(toClone, localPos, localRot, parent);
-        clone.name = $"{toClone.name}_Clone_{Time.frameCount}";
+        // Grab Interactable hover 상태 해제
+        IXRHoverInteractable hoverInteractable = _interactable;
+        if (hoverInteractable != null)
+            interactionManager.CancelInteractableHover(hoverInteractable);
     }
 
     private void OnSelectExited(SelectExitEventArgs args)
     {
-        // 복제본 바꾸기, 다른 슬롯에 장착된 경우만(다른 부모에 붙은 경우만)
-        if (transform.parent != parent)
-        {
-            clone.transform.SetParent(transform.parent);
-            clone.transform.localPosition = transform.localPosition;
-            clone.transform.localRotation = transform.localRotation;
-            clone.GetComponent<CloneObject>().enabled = false;
-        }
-        else // 올바른 슬롯에 장착되지 못했을때
-            Destroy(clone);
-        // 원본 정상화
+        // 원본을 다시 원래 위치로 되돌림. 올바르게 장착되었을때는 onSocketed에서 처리
         transform.SetParent(parent);
         transform.localPosition = localPos;
         transform.localRotation = localRot;
     }
-    
 }
 
