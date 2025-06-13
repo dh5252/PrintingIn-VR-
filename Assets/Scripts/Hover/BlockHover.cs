@@ -6,100 +6,75 @@ using System.Collections;
 
 public class BlockHover : MonoBehaviour
 {
-    [Header("Hover 시 커질 크기 (원본 대비 배율)")]
-    [Tooltip("Hover되었을 때 적용할 목표 로컬 스케일 비율")]
-    public Vector3 hoverScale = new Vector3(3.5f, 1.2f, 0.1f);
-
-    [Header("스케일 애니메이션 속도")]
-    [Tooltip("클수록 빠르게 변환됩니다.")]
-    [Range(1f, 20f)]
-    public float scaleSpeed = 8f;
-
-    // 내부 참조
-    private XRBaseInteractable _interactable;
-
-    // 원본(기본) 스케일을 저장
-    private Vector3 _originalScale;
-
-    // 현재 실행 중인 스케일 코루틴 참조 (겹침 방지)
-    private Coroutine _scaleCoroutine;
-
-    private void Awake()
+    [RequireComponent(typeof(XRBaseInteractable))]
+    public class HoverDarken : MonoBehaviour
     {
-        // 1) XRBaseInteractable 가져와서 Hover 이벤트 구독
-        _interactable = GetComponent<XRBaseInteractable>();
-        if (_interactable == null)
+        [Range(0f, 1f), Tooltip("원본 색상 대비 어두워질 비율 (0.8 = 20% 어둡게)")]
+        public float darkenFactor = 0.8f;
+
+        XRBaseInteractable interactable;
+        Renderer[] renderers;
+        Color[][] originalColors;
+
+        void Awake()
         {
-            Debug.LogError($"[{name}] BlockHoverScale: XRBaseInteractable 컴포넌트가 필요합니다.");
-            return;
-        }
-        _interactable.hoverEntered.AddListener(OnHoverEnter);
-        _interactable.hoverExited.AddListener(OnHoverExit);
+            interactable = GetComponent<XRBaseInteractable>();
 
-        // 2) 현재 오브젝트의 기본 스케일 저장
-        _originalScale = transform.localScale;
-    }
+            // 이 오브젝트와 자식들의 모든 Renderer를 가져와서
+            renderers = GetComponentsInChildren<Renderer>();
+            originalColors = new Color[renderers.Length][];
 
-    private void OnDestroy()
-    {
-        if (_interactable != null)
-        {
-            _interactable.hoverEntered.RemoveListener(OnHoverEnter);
-            _interactable.hoverExited.RemoveListener(OnHoverExit);
-        }
-    }
-
-    /// <summary>
-    /// Hover Entered 이벤트
-    /// 부드럽게 hoverScale로 스케일을 변경
-    /// </summary>
-    private void OnHoverEnter(HoverEnterEventArgs args)
-    {
-        StartScaleAnimation(hoverScale);
-    }
-
-    /// <summary>
-    /// Hover Exited 이벤트
-    /// 부드럽게 원본(_originalScale)으로 스케일을 변경
-    /// </summary>
-    private void OnHoverExit(HoverExitEventArgs args)
-    {
-        StartScaleAnimation(_originalScale);
-    }
-
-    /// <summary>
-    /// 새로운 목표 스케일(target)로 가는 코루틴 시작
-    /// </summary>
-    private void StartScaleAnimation(Vector3 target)
-    {
-        // 이미 코루틴이 돌고 있으면 중단
-        if (_scaleCoroutine != null)
-            StopCoroutine(_scaleCoroutine);
-
-        _scaleCoroutine = StartCoroutine(ScaleCoroutine(target));
-    }
-
-    /// <summary>
-    /// 현재 transform.localScale에서 targetScale로 부드럽게 Lerp
-    /// </summary>
-    private IEnumerator ScaleCoroutine(Vector3 targetScale)
-    {
-        Vector3 startScale = transform.localScale;
-        float t = 0f;
-
-        // t가 1이 될 때까지 보간
-        while (t < 1f)
-        {
-            t += Time.deltaTime * scaleSpeed;
-            // SmoothStep을 써서 처음과 끝이 부드럽게 이어지도록
-            float s = Mathf.SmoothStep(0f, 1f, t);
-            transform.localScale = Vector3.Lerp(startScale, targetScale, s);
-            yield return null;
+            // 각 머티리얼의 원본 색상 저장
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                var mats = renderers[i].materials;
+                originalColors[i] = new Color[mats.Length];
+                for (int j = 0; j < mats.Length; j++)
+                    originalColors[i][j] = mats[j].HasProperty("_Color")
+                                          ? mats[j].color
+                                          : Color.white;
+            }
         }
 
-        // 정확히 목표 스케일로 마무리
-        transform.localScale = targetScale;
-        _scaleCoroutine = null;
+        void OnEnable()
+        {
+            interactable.hoverEntered.AddListener(OnHoverEntered);
+            interactable.hoverExited.AddListener(OnHoverExited);
+        }
+
+        void OnDisable()
+        {
+            interactable.hoverEntered.RemoveListener(OnHoverEntered);
+            interactable.hoverExited.RemoveListener(OnHoverExited);
+        }
+
+        private void OnHoverEntered(HoverEnterEventArgs args)
+        {
+            // Hover 시작: 모든 머티리얼 색을 어둡게
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                var mats = renderers[i].materials;
+                for (int j = 0; j < mats.Length; j++)
+                {
+                    if (mats[j].HasProperty("_Color"))
+                        mats[j].color = originalColors[i][j] * darkenFactor;
+                }
+            }
+        }
+
+        private void OnHoverExited(HoverExitEventArgs args)
+        {
+            // Hover 끝: 원본 색으로 복원
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                var mats = renderers[i].materials;
+                for (int j = 0; j < mats.Length; j++)
+                {
+                    if (mats[j].HasProperty("_Color"))
+                        mats[j].color = originalColors[i][j];
+                }
+            }
+        }
     }
 
 }

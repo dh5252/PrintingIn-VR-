@@ -1,7 +1,9 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.InputSystem; 
 
 [RequireComponent(typeof(XRSocketInteractor))]
 public class CloneSocket : MonoBehaviour
@@ -14,16 +16,15 @@ public class CloneSocket : MonoBehaviour
 
     private Transform numberParent;
 
-    public Transform x, y, z;
-
+    public Transform x, z;
 
     Vector3 originPos;
     Quaternion originRot;
     Vector3 originScale;
 
-    Vector3 xPos, yPos, zPos;
-    Vector3 xScale, yScale, zScale;
-    Quaternion xRot, yRot, zRot;
+    Vector3 xPos, zPos;
+    Vector3 xScale, zScale;
+    Quaternion xRot, zRot;
 
     XRSocketInteractor socket;
     XRInteractionManager manager;
@@ -45,18 +46,14 @@ public class CloneSocket : MonoBehaviour
         xRot = x.localRotation;
         xScale = x.localScale;
 
-        yPos = y.localPosition;
-        yRot = y.localRotation;
-        yScale = y.localScale;
-
         zPos = z.localPosition;
         zRot = z.localRotation;
         zScale = z.localScale;
 
         // 소켓에 SelectEnter 이벤트 붙이기
         socket.selectEntered.AddListener(OnSocketed);
-
     }
+
 
     void OnSocketed(SelectEnterEventArgs args)
     {
@@ -72,32 +69,26 @@ public class CloneSocket : MonoBehaviour
             origComp.transform.localRotation = Quaternion.identity;
             origComp.transform.localScale = Vector3.one;
             origComp.GetComponent<BlockHover>().enabled = false;
+            socket.socketScaleMode = SocketScaleMode.Fixed;
             socket.fixedScale = new Vector3(
                 1f / origComp.transform.lossyScale.x,
                 1f / origComp.transform.lossyScale.y,
                 1f / origComp.transform.lossyScale.z
             );
-
+            AudioManager.Instance.PlayEffectSound();
             return;
         }
 
         // 2) 원본을 소켓에서 분리 (SelectExit 호출)
         manager.SelectExit(socket, args.interactableObject);
-
         // 3) 원본을 원위치로 복원
+        origT.GetComponent<BlockHover>().enabled = true;
         if (origT.name == "XValue")
         {
             origT.SetParent(numberParent, false);
             origT.localPosition = xPos;
             origT.localRotation = xRot;
             origT.localScale = xScale;
-        }
-        else if (origT.name == "YValue")
-        {
-            origT.SetParent(numberParent, false);
-            origT.localPosition = yPos;
-            origT.localRotation = yRot;
-            origT.localScale = yScale;
         }
         else if (origT.name == "ZValue")
         {
@@ -113,7 +104,7 @@ public class CloneSocket : MonoBehaviour
             origT.localRotation = originRot;
             origT.localScale = originScale;
         }
-        
+
 
         // 4) 슬롯(attachTransform) 밑에 클론 생성
         var clone = Instantiate(origComp.gameObject);
@@ -123,11 +114,32 @@ public class CloneSocket : MonoBehaviour
         clone.transform.localRotation = Quaternion.identity;
         clone.transform.localScale = Vector3.one;
         clone.tag = "Untagged";
+
+        StartCoroutine(DelayedSocketRefresh(60));
+
     }
 
     void OnDestroy()
     {
         socket.selectEntered.RemoveListener(OnSocketed);
+    }
+
+    private IEnumerator DelayedSocketRefresh(int frame)
+    {
+        for (int i = 0; i < frame; i++)
+            yield return null;
+
+        bool flag = false;
+        Transform attach = transform.Find("Attach");
+        foreach (Transform child in attach)
+        {
+            if (!flag)
+            {
+                flag = true;
+                continue;
+            }
+            Destroy(child.gameObject);
+        }
     }
 
 }

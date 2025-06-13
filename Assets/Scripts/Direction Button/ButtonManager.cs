@@ -44,6 +44,14 @@ public class ButtonsManager : MonoBehaviour
 
     public string GetSelectedButtonName()
     {
+        if (_currentlySelectedButtonName == "X minus Prefab")
+            return "x minus";
+        else if (_currentlySelectedButtonName == "X plus Prefab")
+            return "x plus";
+        else if (_currentlySelectedButtonName == "Z minus Prefab")
+            return "z minus";
+        else if (_currentlySelectedButtonName == "Z plus Prefab")
+            return "z plus";
         return _currentlySelectedButtonName;
     }
 

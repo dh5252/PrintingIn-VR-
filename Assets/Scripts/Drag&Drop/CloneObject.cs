@@ -16,6 +16,7 @@ public class CloneObject : MonoBehaviour
     private Transform parent;
     private Vector3 localPos;
     private Quaternion localRot;
+    private Vector3 localScale;
 
     private void Awake()
     {
@@ -26,6 +27,7 @@ public class CloneObject : MonoBehaviour
         parent = transform.parent;
         localPos = transform.localPosition;
         localRot = transform.localRotation;
+        localScale = transform.localScale;
     }
 
     private void OnEnable()
@@ -42,10 +44,9 @@ public class CloneObject : MonoBehaviour
 
     private void OnSelectEntered(SelectEnterEventArgs args)
     {
-        // Grab Interactable hover 상태 해제
-        IXRHoverInteractable hoverInteractable = _interactable;
-        if (hoverInteractable != null)
-            interactionManager.CancelInteractableHover(hoverInteractable);
+        transform.localScale = localScale;
+        transform.GetComponent<BlockHover>().enabled = false;
+        AudioManager.Instance.PlayEffectSound();
     }
 
     private void OnSelectExited(SelectExitEventArgs args)
@@ -54,6 +55,18 @@ public class CloneObject : MonoBehaviour
         transform.SetParent(parent);
         transform.localPosition = localPos;
         transform.localRotation = localRot;
+        transform.localScale = localScale;
     }
+
+    private void Update()
+    {
+        if (transform.localPosition.x > 400 && transform.parent == parent)
+        {
+            transform.localPosition = localPos;
+            transform.localRotation = localRot;
+            transform.localScale = localScale;
+        }
+    }
+
 }
 
