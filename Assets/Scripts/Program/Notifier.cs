@@ -3,13 +3,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.XR;
 
-public class ErrorNotifier : MonoBehaviour
+public class Notifier : MonoBehaviour
 {
-    public static ErrorNotifier Instance { get; private set; }
+    public static Notifier Instance { get; private set; }
 
     [Header("World-Space Canvas")]
     public GameObject  Canvas;    // 월드 스페이스 캔버스 (비활성화 상태)
-    public TextMeshProUGUI errorText; // 패널 내 텍스트
+    public TextMeshProUGUI UText; // 패널 내 텍스트
 
 
     void Awake()
@@ -18,20 +18,20 @@ public class ErrorNotifier : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            Debug.Log("Create");
         }
         else Destroy(gameObject);
 
         Canvas.SetActive(false);
     }
-    public void ShowError(string message, float time)
+    public void ShowNoti(string message, float time)
     {
         // 1) 패널 켜고 메시지 갱신
-        errorText.text = message;
+        UText.text = message;
         Canvas.SetActive(true);
 
         // 2) 오류 사운드 재생
         AudioManager.Instance.PlayErrorSound();
-
 
         // 5) 3초 후 자동으로 숨김
         StartCoroutine(HideAfterSeconds(time));

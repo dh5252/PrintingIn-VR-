@@ -1,8 +1,11 @@
+using Meta.XR.ImmersiveDebugger.UserInterface.Generic;
 using UnityEngine;
 using UnityEngine.XR;
 
 public class ToggleTeleport : MonoBehaviour
 {
+    public static ToggleTeleport Instance { get; private set; }
+
     [Header("어느 손 컨트롤러 입력을 사용할지")]
     public XRNode inputSource = XRNode.RightHand;
 
@@ -20,6 +23,16 @@ public class ToggleTeleport : MonoBehaviour
     private bool lastPressed = false;
     private bool toggleState = false;  // false→A, true→B
 
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else Destroy(gameObject);
+    }
+
     void Start()
     {
         device = InputDevices.GetDeviceAtXRNode(inputSource);
@@ -27,12 +40,12 @@ public class ToggleTeleport : MonoBehaviour
 
     void Update()
     {
-            // 1) XRDevice API로 Primary Button 체크
+        // 1) XRDevice API로 Primary Button 체크
         bool xrPressed = device.TryGetFeatureValue(CommonUsages.primaryButton, out bool pressed) && pressed;
-    
+
         // 2) 에디터에서 B 키로도 토글
         bool simPressed = Input.GetKeyDown(KeyCode.B);
-    
+
         if ((xrPressed || simPressed) && !lastPressed)
         {
             DoToggleTeleport();
@@ -47,7 +60,13 @@ public class ToggleTeleport : MonoBehaviour
 
         xrOrigin.position = target.position;
 
-       
+
         toggleState = !toggleState;
+    }
+
+    public void TeleportOriginLoc()
+    {
+        xrOrigin.position = teleportPointA.position;
+        xrOrigin.rotation = teleportPointA.rotation;
     }
 }

@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using System.Collections;
+using Meta.XR.ImmersiveDebugger.UserInterface.Generic;
+using System.Linq;
+
 
 
 [RequireComponent(typeof(XRBaseInteractable))]
@@ -13,8 +16,9 @@ public class Program : MonoBehaviour
     public Transform BlockSpot;
 
     public Transform UserBlocks;
+    public Transform SuccessBlocks;
 
-    public Renderer _renderer;           // 버튼의 Renderer
+    public Renderer _renderer;
     public Material startMaterial;
     public Material stopMaterial;
 
@@ -52,15 +56,15 @@ public class Program : MonoBehaviour
             }
             if (checkValidBlockList(codeList) == false)
             {
-                ErrorNotifier.Instance.ShowError(errorMessage);
+                ErrorNotifier.Instance.ShowError(errorMessage, 2);
                 return;
             }
 
             executor.ResetCancellation();
-            runCoroutine = StartCoroutine(RunCodeWithCallback(codeList, RestoreMaterial));
-
             if (_renderer != null && stopMaterial != null)
                 _renderer.material = stopMaterial;
+            
+            runCoroutine = StartCoroutine(RunCodeWithCallback(codeList));
         }
         else
         {
@@ -73,11 +77,42 @@ public class Program : MonoBehaviour
         }
     }
 
-    private IEnumerator RunCodeWithCallback(List<CodeBlock> codeList, Action onFinished)
+    private IEnumerator RunCodeWithCallback(List<CodeBlock> codeList)
     {
-        yield return executor.RunCode(codeList);
-        onFinished?.Invoke();
-        yield break;
+        yield return StartCoroutine(executor.RunCode(codeList));
+        for (int i = 0; i < 180; ++i)
+            yield return null;
+        string check = Stage.Instance.isAnswer();
+        if (check == "ok")
+            Success();
+        else
+        {
+            ToggleTeleport.Instance.TeleportOriginLoc();
+            string errorMessage = "오답입니다! " + check;
+            ErrorNotifier.Instance.ShowError(errorMessage, 5);
+            StartCoroutine(DelayedUserBlockClear(5));
+        }
+        RestoreMaterial();
+        runCoroutine = null;
+    }
+
+    private void Success()
+    {
+        // 성공시 코드블록 삭제
+        var blocks = BlockSpot
+                .GetComponentsInChildren<XRGrabInteractable>()
+                .Where(comp => comp.gameObject.layer == LayerMask.NameToLayer("Block"))
+                .ToList();
+        foreach (var b in blocks)
+            Destroy(b.gameObject);
+
+        // 기존에 쌓은 성들 부모 옮기기.
+        while (UserBlocks.childCount > 0)
+            UserBlocks.GetChild(0).SetParent(SuccessBlocks);
+        
+        ToggleTeleport.Instance.TeleportOriginLoc();
+        Notifier.Instance.ShowNoti("성공하셨습니다!! 다음 단계로 넘어갑니다.", 5);
+        Stage.Instance.PassProblem();
     }
     private void RestoreMaterial()
     {

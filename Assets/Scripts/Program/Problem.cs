@@ -7,13 +7,19 @@ using UnityEngine;
 public class ExpectedBlockData
 {
     public string Material;   // Concrete, Wood 등
-    public Vector2 Position;   // x, z 좌표만 쓰도록 Vector2
+    public Vector2Int Position;   // x, z 좌표만 쓰도록 Vector2
 
     public ExpectedBlockData(string m, Vector3 v)
     {
         Material = m;
-        Position.x = v.x;
-        Position.y = v.z;
+        Position.x = (int)Math.Round(v.x);
+        Position.y = (int)Math.Round(v.z);
+    }
+
+    public ExpectedBlockData(ExpectedBlockData e)
+    {
+        this.Material = e.Material;
+        this.Position = e.Position;
     }
 }
 

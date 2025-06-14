@@ -4,6 +4,7 @@ using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.UIElements;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
@@ -14,7 +15,7 @@ public class CodeBlock
     public BlockType Type;
     public Vector3Int Direction;      // MoveBlock 용
     public string Material = "";      // PlaceBlock 용
-    public string RepeatCountVar = "";
+
     public int RepeatCount;        // RepeatBlock 용
 
     public CodeBlock(GameObject block)
@@ -37,10 +38,11 @@ public class CodeBlock
         else
         {
             this.Type = BlockType.Repeat;
+            RepeatCount = 0;
             if (block.GetComponentInChildren<XRSocketInteractor>().gameObject.GetComponentInChildren<TextMeshPro>() != null)
-                RepeatCountVar = block.GetComponentInChildren<XRSocketInteractor>().gameObject.GetComponentInChildren<TextMeshPro>().text;
+                RepeatCount += int.Parse(block.GetComponentInChildren<XRSocketInteractor>().gameObject.GetComponentInChildren<TextMeshPro>().text);
 
-            RepeatCount = int.Parse(block.transform.Find("AdditionalNumber").GetComponent<TextMeshPro>().text) + int.Parse(RepeatCountVar); 
+            RepeatCount += int.Parse(block.transform.Find("AdditionalNumber").GetComponent<TextMeshPro>().text);
         }
 
     }
