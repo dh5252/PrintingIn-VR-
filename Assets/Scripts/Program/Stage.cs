@@ -46,12 +46,15 @@ public class Stage : MonoBehaviour
         InitProblem2();
         InitProblem3();
         InitProblem4();
+        InitProblem5();
         curIndex = StartLevel - 1;
         SetProblemByIndex(curIndex);
     }
 
     public string isAnswer()
     {
+        if (curIndex == 4)
+            return "ok";
         List<ExpectedBlockData> answerCopy = problems[curIndex].Answer
             .Select(item => new ExpectedBlockData(item))
             .ToList();
@@ -83,6 +86,8 @@ public class Stage : MonoBehaviour
 
     public void PassProblem()
     {
+        if (curIndex == 4)
+            return;
         SetProblemByIndex(++curIndex);
     }
 
@@ -192,6 +197,20 @@ public class Stage : MonoBehaviour
                 problems[3].Answer.Add(new ExpectedBlockData(problems[3].Material1, new Vector3(3 * 5 + problems[3].x * 5 + problems[3].StartX + i * 5, 0, problems[3].StartZ)));
         // 추가 정보
         problems[3].Description += "\n\n높이 : 2";
+    }
+
+    private void InitProblem5()
+    {
+        problems[4].Description = "성 안에서 자유롭게 원하는 것을 지어보자!";
+        problems[4].Material1 = "콘크리트";
+        problems[4].Material2 = null;
+        problems[4].StartX = 430;
+        problems[4].StartZ = 800;
+        problems[4].x = 10;
+        problems[4].z = 0;
+        problems[4].height = 2;
+        problems[4].ProblemImage = sprites[4];        
+        // 추가 정보
     }
 
     private void OnDestroy()
